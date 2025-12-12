@@ -1,23 +1,27 @@
 import express from 'express';
+import { getAsync } from '../db.js';
 
 const router = express.Router();
 
 // Admin login
-router.post('/login', (req, res) => {
-  const { password } = req.body;
-  const adminPassword = process.env.ADMIN_PASSWORD || 'Paras@1318';
+router.post('/login', async (req, res) => {
+  try {
+    const { password } = req.body;
 
-  if (password === adminPassword) {
-    res.json({ 
-      success: true, 
-      message: 'Admin logged in successfully',
-      token: Buffer.from(password).toString('base64')
-    });
-  } else {
-    res.status(401).json({ 
-      success: false, 
-      message: 'Invalid admin password' 
-    });
+    if (!password) {
+      return res.status(400).json({ message: 'Password required' });
+    }
+
+    const admin = await getAsync('SELECT * FROM admin WHERE id = ?', ['admin-1']);
+
+    if (!admin || admin.password !== password) {
+      return res.status(401).json({ message: 'Invalid admin password' });
+    }
+
+    res.json({ message: 'Admin login successful', admin: { id: admin.id } });
+  } catch (error) {
+    console.error('Admin login error:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
