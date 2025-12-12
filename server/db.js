@@ -95,9 +95,9 @@ const initializeDefaultData = () => {
       db.run(`
         INSERT INTO admin (id, password, createdAt)
         VALUES (?, ?, ?)
-      `, ['admin-1', 'admin123', now], (err) => {
+      `, ['admin-1', 'Paras@1318', now], (err) => {
         if (err) console.error('Error inserting default admin:', err);
-        else console.log('✓ Default admin credentials initialized (password: admin123)');
+        else console.log('✓ Default admin credentials initialized (password: Paras@1318)');
       });
     }
   });
