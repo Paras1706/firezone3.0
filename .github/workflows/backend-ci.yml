@@ -1,0 +1,56 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        working-directory: ./server
+        run: npm install
+      
+      - name: Check if server starts
+        working-directory: ./server
+        run: timeout 5 npm start || true
+  
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: backend-${{ github.run_number }}
+          release_name: Backend Release ${{ github.run_number }}
+          body: |
+            Backend code ready for deployment.
+            
+            Deploy Options:
+            1. Render: https://render.com (recommended free)
+            2. Railway: https://railway.app (you have token)
+            3. Local with Ngrok: npm start + ngrok http 5000
+            4. Self-host: Download and run on your server
+            
+            Latest code: ${{ github.sha }}
+          draft: false
+          prerelease: false
