@@ -4,8 +4,13 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', 'VITE_');
+    const isProduction = mode === 'production';
+    
+    // Use '/' for Render, '/Fire-Zone-2.0/' for GitHub Pages
+    const base = isProduction ? '/' : '/Fire-Zone-2.0/';
+    
     return {
-      base: '/Fire-Zone-2.0/',
+      base: base,
       server: {
         port: 3000,
         host: '127.0.0.1',
