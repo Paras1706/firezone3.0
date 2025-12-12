@@ -1,7 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.VITE_API_URL || 'https://firezone3-backend.onrender.com/api';
 
-if (!API_URL) {
-  console.warn('VITE_API_URL environment variable is not set. Backend API calls will fail.');
+if (!import.meta.env.VITE_API_URL) {
+  console.warn('VITE_API_URL not set, using Render backend:', API_URL);
 }
 
 // Player API Calls
