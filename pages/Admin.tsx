@@ -172,6 +172,41 @@ export const Admin: React.FC = () => {
         <h2 className="text-xl font-bold mb-6 text-neon-blue border-b border-gray-800 pb-2">Match Configuration</h2>
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Battle Mode</label>
+              <select 
+                value={matchDetails.mode || ''}
+                onChange={(e) => updateMatchDetails({ mode: e.target.value })}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/50 transition"
+              >
+                <option value="">Select Mode</option>
+                <option value="Team Death Match">Team Death Match</option>
+                <option value="Domination">Domination</option>
+                <option value="Search and Destroy">Search and Destroy</option>
+                <option value="Free for All">Free for All</option>
+                <option value="Headquarters">Headquarters</option>
+                <option value="Custom">Custom</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Map</label>
+              <select 
+                value={matchDetails.map || ''}
+                onChange={(e) => updateMatchDetails({ map: e.target.value })}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/50 transition"
+              >
+                <option value="">Select Map</option>
+                <option value="Nuketown">Nuketown</option>
+                <option value="Standoff">Standoff</option>
+                <option value="Launch Base">Launch Base</option>
+                <option value="Raid">Raid</option>
+                <option value="Satellite">Satellite</option>
+                <option value="Pipeline">Pipeline</option>
+                <option value="Custom">Custom</option>
+              </select>
+            </div>
+          </div>
+          <div className="space-y-4">
             <NeonInput
               label="Prize Pool"
               value={matchDetails.prizePool}
@@ -185,6 +220,8 @@ export const Admin: React.FC = () => {
               placeholder="e.g. 100"
             />
           </div>
+        </div>
+        <div className="grid md:grid-cols-2 gap-6 mt-6">
           <div className="space-y-4">
             <NeonInput
               label="Room ID"
@@ -199,8 +236,6 @@ export const Admin: React.FC = () => {
               placeholder="e.g. 1234"
             />
           </div>
-        </div>
-        <div className="grid md:grid-cols-2 gap-6 mt-6">
           <div className="space-y-4">
             <NeonInput
               label="Match Date"
@@ -208,8 +243,6 @@ export const Admin: React.FC = () => {
               onChange={(e) => updateMatchDetails({ date: e.target.value })}
               type="date"
             />
-          </div>
-          <div className="space-y-4">
             <NeonInput
               label="Match Time"
               value={matchDetails.time}
