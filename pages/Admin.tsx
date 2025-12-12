@@ -16,6 +16,7 @@ export const Admin: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+  const [loadingPlayerId, setLoadingPlayerId] = useState<string | null>(null);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +69,32 @@ export const Admin: React.FC = () => {
     // Direct delete without confirmation dialog to ensure "activation" feeling
     deletePlayers(selectedPlayerIds);
     setSelectedPlayerIds([]);
+  };
+
+  const handleVerifyPlayer = async (playerId: string) => {
+    setLoadingPlayerId(playerId);
+    try {
+      await verifyPlayer(playerId);
+      console.log('Player verified successfully:', playerId);
+    } catch (err: any) {
+      console.error('Verify error:', err);
+      alert('Failed to verify: ' + (err.message || 'Unknown error'));
+    } finally {
+      setLoadingPlayerId(null);
+    }
+  };
+
+  const handleDeletePlayer = async (playerId: string) => {
+    setLoadingPlayerId(playerId);
+    try {
+      await deletePlayer(playerId);
+      console.log('Player deleted successfully:', playerId);
+    } catch (err: any) {
+      console.error('Delete error:', err);
+      alert('Failed to delete: ' + (err.message || 'Unknown error'));
+    } finally {
+      setLoadingPlayerId(null);
+    }
   };
 
   // Stats
@@ -288,16 +315,26 @@ export const Admin: React.FC = () => {
                     <div className="flex justify-end gap-2">
                       {!player.verified && (
                         <button 
-                          onClick={() => verifyPlayer(player.id)}
-                          className="p-2 bg-green-500/10 text-green-500 rounded hover:bg-green-500 hover:text-white transition-colors"
+                          onClick={() => handleVerifyPlayer(player.id)}
+                          disabled={loadingPlayerId === player.id}
+                          className={`p-2 rounded transition-colors ${
+                            loadingPlayerId === player.id 
+                              ? 'bg-gray-500 text-gray-400 cursor-not-allowed' 
+                              : 'bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white'
+                          }`}
                           title="Verify Payment"
                         >
-                          <Check className="w-4 h-4" />
+                          <Check className={`w-4 h-4 ${loadingPlayerId === player.id ? 'animate-spin' : ''}`} />
                         </button>
                       )}
                       <button 
-                        onClick={() => deletePlayer(player.id)}
-                        className="p-2 bg-red-500/10 text-red-500 rounded hover:bg-red-500 hover:text-white transition-colors"
+                        onClick={() => handleDeletePlayer(player.id)}
+                        disabled={loadingPlayerId === player.id}
+                        className={`p-2 rounded transition-colors ${
+                          loadingPlayerId === player.id 
+                            ? 'bg-gray-500 text-gray-400 cursor-not-allowed' 
+                            : 'bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white'
+                        }`}
                         title="Delete Player"
                       >
                         <Trash2 className="w-4 h-4" />

@@ -91,7 +91,8 @@ export const TournamentProvider: React.FC<{ children: ReactNode }> = ({ children
     try {
       setError(null);
       const updated = await playerAPI.verify(playerId);
-      setPlayers(prev => prev.map(p => p.id === updated._id ? { ...updated, id: updated._id } : p));
+      console.log('Verified player:', updated);
+      setPlayers(prev => prev.map(p => p.id === updated.id ? { ...p, verified: true } : p));
     } catch (err: any) {
       setError(err.message || 'Failed to verify player');
       throw err;
