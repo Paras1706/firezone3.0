@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useTournament } from '../context/TournamentContext';
 import { NeonCard } from '../components/ui/NeonCard';
 import { NeonInput } from '../components/ui/NeonInput';
 import { NeonButton } from '../components/ui/NeonButton';
-import { Lock, Save, Trash2, Check, Download, Send, DollarSign, Users, UserCheck } from 'lucide-react';
+import { Lock, Save, Trash2, Check, Download, Send, DollarSign, Users, UserCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ADMIN_PASSWORD } from '../constants';
+
+const ITEMS_PER_PAGE = 10;
 
 export const Admin: React.FC = () => {
   const { 
@@ -17,6 +19,7 @@ export const Admin: React.FC = () => {
   const [error, setError] = useState('');
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [loadingPlayerId, setLoadingPlayerId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +74,22 @@ export const Admin: React.FC = () => {
     setSelectedPlayerIds([]);
   };
 
-  const handleVerifyPlayer = async (playerId: string) => {
+  // Memoized expensive calculations
+  const { totalRevenue, verifiedCount } = useMemo(() => {
+    const verified = players.filter(p => p.verified).length;
+    const revenue = verified * parseInt(matchDetails.entryFee || '0');
+    return { totalRevenue: revenue, verifiedCount: verified };
+  }, [players, matchDetails.entryFee]);
+
+  // Memoized pagination data
+  const paginatedPlayers = useMemo(() => {
+    const start = currentPage * ITEMS_PER_PAGE;
+    return players.slice(start, start + ITEMS_PER_PAGE);
+  }, [players, currentPage]);
+
+  const totalPages = useMemo(() => Math.ceil(players.length / ITEMS_PER_PAGE), [players.length]);
+
+  const handleVerifyPlayer = useCallback(async (playerId: string) => {
     setLoadingPlayerId(playerId);
     try {
       await verifyPlayer(playerId);
@@ -82,9 +100,9 @@ export const Admin: React.FC = () => {
     } finally {
       setLoadingPlayerId(null);
     }
-  };
+  }, [verifyPlayer]);
 
-  const handleDeletePlayer = async (playerId: string) => {
+  const handleDeletePlayer = useCallback(async (playerId: string) => {
     setLoadingPlayerId(playerId);
     try {
       await deletePlayer(playerId);
@@ -95,11 +113,7 @@ export const Admin: React.FC = () => {
     } finally {
       setLoadingPlayerId(null);
     }
-  };
-
-  // Stats
-  const totalRevenue = players.filter(p => p.verified).length * parseInt(matchDetails.entryFee);
-  const verifiedCount = players.filter(p => p.verified).length;
+  }, [deletePlayer]);
 
   if (!isAdmin) {
     return (
@@ -300,7 +314,7 @@ export const Admin: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800 text-sm">
-              {players.map(player => (
+              {paginatedPlayers.map(player => (
                 <tr key={player.id} className={`hover:bg-white/5 transition ${selectedPlayerIds.includes(player.id) ? 'bg-neon-blue/5' : ''}`}>
                   <td className="p-4 text-center">
                     <input 
@@ -372,6 +386,34 @@ export const Admin: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 px-4">
+            <span className="text-xs text-gray-400">
+              Showing {currentPage * ITEMS_PER_PAGE + 1}-{Math.min((currentPage + 1) * ITEMS_PER_PAGE, players.length)} of {players.length}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                disabled={currentPage === 0}
+                className="p-2 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-xs text-gray-400 px-2 py-2">
+                Page {currentPage + 1} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                disabled={currentPage === totalPages - 1}
+                className="p-2 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </NeonCard>
     </div>
   );
