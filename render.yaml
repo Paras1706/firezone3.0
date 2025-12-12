@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: firezone-backend
+    env: node
+    plan: free
+    buildCommand: npm install --prefix server
+    startCommand: npm start --prefix server
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://firezone3-0.onrender.com
+    healthCheckPath: /api/health
