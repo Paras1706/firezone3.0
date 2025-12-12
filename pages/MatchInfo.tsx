@@ -1,36 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NeonCard } from '../components/ui/NeonCard';
 import { useTournament } from '../context/TournamentContext';
-import { Lock, Unlock, Calendar, MapPin, Swords, ShieldCheck, AlertCircle, LogIn } from 'lucide-react';
+import { Lock, Unlock, Calendar, MapPin, Swords, ShieldCheck, AlertCircle, LogIn, QrCode, Loader } from 'lucide-react';
 import { NeonButton } from '../components/ui/NeonButton';
 import { NeonInput } from '../components/ui/NeonInput';
+import { playerAPI } from '../api/backend';
 
 export const MatchInfo: React.FC = () => {
-  const { matchDetails, players } = useTournament();
+  const { matchDetails } = useTournament();
   
   // Local state for access control
   const [authUid, setAuthUid] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authError, setAuthError] = useState('');
   const [currentPlayerName, setCurrentPlayerName] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [showQrScanner, setShowQrScanner] = useState(false);
+  const [qrLoading, setQrLoading] = useState(true);
 
-  const handleCheckAccess = (e: React.FormEvent) => {
+  // Refresh player data on mount and periodically
+  useEffect(() => {
+    const refreshPlayerList = async () => {
+      try {
+        await playerAPI.getAll();
+      } catch (err) {
+        console.error('Error refreshing players:', err);
+      }
+    };
+
+    // Refresh on mount
+    refreshPlayerList();
+
+    // Refresh every 10 seconds while on this page
+    const interval = setInterval(refreshPlayerList, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleCheckAccess = async (e: React.FormEvent) => {
     e.preventDefault();
-    const player = players.find(p => p.uid === authUid || p.whatsapp === authUid);
-
-    if (!player) {
-      setAuthError('Player ID not found in registration list.');
-      return;
-    }
-
-    if (!player.verified) {
-      setAuthError('Your payment is still pending verification by Admin.');
-      return;
-    }
-
-    setCurrentPlayerName(player.name);
-    setIsAuthenticated(true);
+    setIsVerifying(true);
     setAuthError('');
+
+    try {
+      // Fetch fresh player data to ensure we have latest verified status
+      const allPlayers = await playerAPI.getAll();
+      const player = allPlayers.find(p => p.uid === authUid || p.whatsapp === authUid);
+
+      if (!player) {
+        setAuthError('Player ID not found in registration list.');
+        setIsVerifying(false);
+        return;
+      }
+
+      if (!player.verified) {
+        setAuthError('Your payment is still pending verification by Admin.');
+        setIsVerifying(false);
+        return;
+      }
+
+      setCurrentPlayerName(player.name);
+      setIsAuthenticated(true);
+      setAuthError('');
+    } catch (err: any) {
+      setAuthError('Error verifying identity. Please try again.');
+      console.error('Verification error:', err);
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   if (!isAuthenticated) {
@@ -56,12 +92,47 @@ export const MatchInfo: React.FC = () => {
               onChange={(e) => setAuthUid(e.target.value)}
               icon={<LogIn className="w-5 h-5" />}
               error={authError}
+              disabled={isVerifying}
             />
             
-            <NeonButton fullWidth type="submit" className="mt-2">
-              Verify Identity
+            <NeonButton fullWidth type="submit" className="mt-2" disabled={isVerifying}>
+              {isVerifying ? (
+                <span className="flex items-center justify-center">
+                  <Loader className="w-4 h-4 animate-spin mr-2" />
+                  Verifying...
+                </span>
+              ) : (
+                'Verify Identity'
+              )}
             </NeonButton>
           </form>
+
+          {showQrScanner && (
+            <div className="mt-6 pt-6 border-t border-gray-800">
+              <p className="text-xs text-gray-500 mb-3">OR scan QR code from payment receipt:</p>
+              <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700 min-h-[250px] flex items-center justify-center">
+                {qrLoading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader className="w-6 h-6 text-neon-blue animate-spin" />
+                    <p className="text-xs text-gray-400">Loading QR scanner...</p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">QR Scanner Ready</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <button 
+            type="button"
+            onClick={() => {
+              setShowQrScanner(!showQrScanner);
+              if (!showQrScanner) setQrLoading(true);
+            }}
+            className="mt-6 text-xs text-neon-blue hover:text-neon-blue/80 underline flex items-center justify-center gap-1 mx-auto"
+          >
+            <QrCode className="w-3 h-3" /> Use QR Scanner
+          </button>
 
           <p className="mt-6 text-xs text-gray-500">
             Not registered yet? <span className="text-neon-blue cursor-pointer hover:underline" onClick={() => window.scrollTo(0,0)}>Go to Registration</span>
