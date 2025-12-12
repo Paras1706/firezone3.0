@@ -12,13 +12,26 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'https://paras1706.github.io',
-    'https://Paras1706.github.io',
-    process.env.FRONTEND_URL || ''
-  ].filter(Boolean),
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'https://paras1706.github.io',
+      'https://Paras1706.github.io',
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
+
+    // Allow ngrok domains and localhost
+    if (!origin || 
+        allowedOrigins.includes(origin) || 
+        origin.includes('ngrok') ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1')) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all for development
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
