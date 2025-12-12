@@ -173,38 +173,24 @@ export const Admin: React.FC = () => {
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Battle Mode</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Mode</label>
               <select 
                 value={matchDetails.mode || ''}
                 onChange={(e) => updateMatchDetails({ mode: e.target.value })}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/50 transition"
               >
                 <option value="">Select Mode</option>
-                <option value="Team Death Match">Team Death Match</option>
-                <option value="Domination">Domination</option>
-                <option value="Search and Destroy">Search and Destroy</option>
-                <option value="Free for All">Free for All</option>
-                <option value="Headquarters">Headquarters</option>
-                <option value="Custom">Custom</option>
+                <option value="Solo">Solo</option>
+                <option value="Duo">Duo</option>
+                <option value="Squad">Squad</option>
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Map</label>
-              <select 
-                value={matchDetails.map || ''}
-                onChange={(e) => updateMatchDetails({ map: e.target.value })}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue/50 transition"
-              >
-                <option value="">Select Map</option>
-                <option value="Nuketown">Nuketown</option>
-                <option value="Standoff">Standoff</option>
-                <option value="Launch Base">Launch Base</option>
-                <option value="Raid">Raid</option>
-                <option value="Satellite">Satellite</option>
-                <option value="Pipeline">Pipeline</option>
-                <option value="Custom">Custom</option>
-              </select>
-            </div>
+            <NeonInput
+              label="Map"
+              value={matchDetails.map || ''}
+              onChange={(e) => updateMatchDetails({ map: e.target.value })}
+              placeholder="e.g. Nuketown, Standoff"
+            />
           </div>
           <div className="space-y-4">
             <NeonInput
