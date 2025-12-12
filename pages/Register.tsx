@@ -31,7 +31,7 @@ export const Register: React.FC<RegisterProps> = ({ setPage }) => {
     setStep(2);
   };
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.paymentRef.length < 10) {
       alert("Please enter a valid reference number");
@@ -39,8 +39,13 @@ export const Register: React.FC<RegisterProps> = ({ setPage }) => {
     }
     
     // Submit
-    registerPlayer(formData);
-    setStep(3);
+    try {
+      await registerPlayer(formData);
+      setStep(3);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      alert('Registration failed: ' + (error.message || 'Unknown error. Check console.'));
+    }
   };
 
   return (
