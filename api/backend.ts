@@ -96,7 +96,15 @@ export const adminAPI = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password })
     });
-    if (!response.ok) throw new Error('Invalid admin password');
-    return response.json();
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.error('Admin login failed:', data.message);
+      throw new Error(data.message || 'Invalid admin password');
+    }
+    
+    console.log('Admin login successful');
+    return data;
   }
 };
